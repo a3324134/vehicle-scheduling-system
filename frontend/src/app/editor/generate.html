@@ -1,0 +1,82 @@
+<!-- What must be said: what the interval means, why it can't be shorter, and that it replaces everything. -->
+<p class="intro muted">Generates the whole schedule from Start to End: every station gets a vehicle at least once per interval.</p>
+
+<div class="fields">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="clock">
+    <mat-label>Start</mat-label>
+    <input
+      #startInput
+      matInput
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      maxlength="5"
+      placeholder="HH:MM"
+      [value]="start()"
+      (input)="typeTime('start', startInput.value)"
+      (change)="finishTime('start', startInput)"
+      (keydown)="stepTime('start', $event, startInput)"
+    />
+    @if (rangeError()?.field === 'start') {
+      <mat-hint class="warning">{{ rangeError()!.msg }}</mat-hint>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="clock">
+    <mat-label>End</mat-label>
+    <input
+      #endInput
+      matInput
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      maxlength="5"
+      placeholder="HH:MM"
+      [value]="end()"
+      (input)="typeTime('end', endInput.value)"
+      (change)="finishTime('end', endInput)"
+      (keydown)="stepTime('end', $event, endInput)"
+    />
+    @if (rangeError()?.field === 'end') {
+      <mat-hint class="warning">{{ rangeError()!.msg }}</mat-hint>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="interval">
+    <mat-label>Interval</mat-label>
+    <input
+      #intervalInput
+      matInput
+      type="number"
+      min="1"
+      step="1"
+      aria-label="Departure interval in minutes"
+      [value]="intervalText()"
+      (input)="setInterval(intervalInput.value)"
+    />
+    <span matTextSuffix>min</span>
+    @if (intervalError(); as error) {
+      <mat-hint class="warning">{{ error }}</mat-hint>
+    } @else if (limits()?.shortest_interval_minutes; as shortest) {
+      <mat-hint>At least {{ shortest }} min</mat-hint>
+    }
+  </mat-form-field>
+</div>
+<div class="facts" aria-live="polite">
+  @if (limitsError(); as error) {
+    <p class="warning">{{ error }}</p>
+  } @else if (limits(); as limits) {
+    @if (limits.shortest_interval_minutes === null) {
+      <p class="warning">No schedule is possible for this time range: {{ limits.reason }}</p>
+    } @else if (limits.reason) {
+      <p class="muted">Why not shorter: {{ limits.reason }}</p>
+    }
+  }
+</div>
+
+<div class="actions">
+  <button mat-flat-button [disabled]="!canGenerate()" (click)="generate()">
+    {{ generating() ? 'Generating…' : 'Generate' }}
+  </button>
+  <span class="muted">{{ replacesText() }}</span>
+</div>

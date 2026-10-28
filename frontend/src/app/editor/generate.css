@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  max-width: 820px;
+  padding-top: 16px;
+  /* The text here is the same size as the Editor's and the Blocks page's. */
+  font-size: 14px;
+}
+
+.intro {
+  margin: 0 0 16px;
+}
+
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+/* As compact as the Editor's fields. */
+.fields {
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-container-text-size: 14px;
+  --mat-form-field-outlined-label-text-size: 14px;
+}
+
+.clock {
+  width: 140px;
+}
+
+.interval {
+  width: 160px;
+}
+
+.facts p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 20px;
+}

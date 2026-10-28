@@ -1,0 +1,193 @@
+<h1>Schedule Editor</h1>
+
+@if (loadError(); as error) {
+  <p class="warning">{{ error }}</p>
+} @else {
+  <mat-tab-group
+    class="page-tabs"
+    [selectedIndex]="tab() === 'generate' ? 1 : 0"
+    (selectedIndexChange)="selectTab($event)"
+    animationDuration="0ms"
+    mat-stretch-tabs="false"
+  >
+    <mat-tab label="Manual">
+      <section class="map">
+        <app-track-map
+          [picking]="true"
+          [selected]="pathOnMap()"
+          [options]="mapOptions()"
+          [current]="currentOnMap()"
+          [removable]="removableStation()"
+          (picked)="onMapClick($event)"
+        />
+        <p class="map-help">
+          <span class="muted">Click a block or station to add it to the path; click the last station to remove it.</span>
+          <span class="legend"><i class="swatch path"></i>Path so far</span>
+          <span class="legend"><i class="swatch next"></i>Next step</span>
+          @if (mapMessage(); as message) {
+            <span class="warning" role="status">{{ message }}</span>
+          }
+        </p>
+      </section>
+
+      <div class="layout">
+        <aside class="list">
+          <button mat-flat-button class="new" (click)="newService()">+ New service</button>
+          @if (services().length) {
+            <div class="bulk">
+              <mat-checkbox
+                [checked]="allChecked()"
+                [indeterminate]="checked().size > 0 && !allChecked()"
+                (change)="checkAll($event.checked)"
+              >
+                Select all
+              </mat-checkbox>
+              <button mat-flat-button class="delete" [disabled]="checked().size === 0 || deleting()" (click)="deleteChecked()">
+                Delete selected ({{ checked().size }})
+              </button>
+            </div>
+          }
+          <!-- One line per service, grouped by vehicle: only where it starts and ends (as in the Viewer). -->
+          @for (group of serviceGroups(); track group.vehicle) {
+            <h3 class="group-head">{{ group.vehicle }} <span class="muted">· {{ group.services.length }}</span></h3>
+            @for (service of group.services; track service.id) {
+              <div class="row">
+                <mat-checkbox
+                  [checked]="checked().has(service.id)"
+                  [aria-label]="'Select service ' + service.id"
+                  (change)="check(service.id, $event.checked)"
+                />
+                <button class="item" [class.selected]="service.id === selectedId()" (click)="select(service)">
+                  <strong class="item-id">{{ service.id }}</strong>
+                  <span class="time">{{ departureText(service) }}–{{ arrivalText(service) }}</span>
+                  <span class="muted stops-count">{{ service.stops.length }} stops</span>
+                  @if (conflictCount(service); as count) {
+                    <span class="badge" [attr.aria-label]="count + (count === 1 ? ' conflict' : ' conflicts')">⚠ {{ count }}</span>
+                  }
+                </button>
+              </div>
+            }
+          } @empty {
+            <p class="muted">No services yet.</p>
+          }
+        </aside>
+
+        <section class="form">
+          <h2 class="form-head">
+            {{ selectedId() === null ? 'New service' : 'Service ' + selectedId() }}
+            @if (conflictGroups().length; as count) {
+              <span class="badge">⚠ {{ count }} {{ count === 1 ? 'conflict' : 'conflicts' }}</span>
+            }
+          </h2>
+          @if (conflictGroups().length && dirty()) {
+            <p class="muted note">Conflicts are from the saved version; save to check your changes.</p>
+          }
+
+          <mat-form-field appearance="outline" class="vehicle-field">
+            <mat-label>Vehicle</mat-label>
+            <mat-select [value]="draft().vehicle" (selectionChange)="setVehicle($event.value)">
+              @for (vehicle of vehicles(); track vehicle) {
+                <mat-option [value]="vehicle">{{ vehicle }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <table class="stops">
+            <colgroup>
+              <col class="s-index" />
+              <col class="s-station" />
+              <col class="s-arrival" />
+              <col class="s-departure" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Station</th>
+                <th>Arrival</th>
+                <th>Departure</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (stop of draft().stops; track $index; let i = $index, last = $last, first = $first) {
+                <!-- A stop in a conflict stands out as a whole row; hovering anywhere on it says why. -->
+                <tr [class.conflict]="stopMarks()[i]?.stop?.length" [matTooltip]="tip(stopMarks()[i]?.stop)">
+                  <td class="index">{{ i + 1 }}</td>
+                  <td>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="station">
+                      <mat-select
+                        #stationSelect
+                        [value]="stop.at"
+                        placeholder="Choose"
+                        [aria-label]="'Station of stop ' + (i + 1)"
+                        (selectionChange)="setStation(i, $event.value, stationSelect)"
+                      >
+                        @for (station of stationOptions(i); track station) {
+                          <mat-option [value]="station">{{ station }}</mat-option>
+                        }
+                      </mat-select>
+                      @if (errorFor(i, 'at'); as error) {
+                        <mat-hint class="warning">{{ error }}</mat-hint>
+                      }
+                    </mat-form-field>
+                  </td>
+                  <td class="time arrival" [class.warning]="stopMarks()[i]?.arrival?.length">
+                    {{ first ? '—' : time(arrivals()[i]) || '—' }}
+                  </td>
+                  <td>
+                    @if (last && !first) {
+                      <span class="muted">—</span>
+                    } @else {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="departure">
+                        <input
+                          #departureInput
+                          matInput
+                          type="text"
+                          inputmode="numeric"
+                          autocomplete="off"
+                          maxlength="8"
+                          placeholder="HH:MM:SS"
+                          [attr.aria-label]="'Departure from stop ' + (i + 1)"
+                          [value]="time(stop.departure)"
+                          (input)="typeDeparture(i, departureInput.value)"
+                          (change)="finishDeparture(i, departureInput)"
+                          (keydown)="stepDeparture(i, $event, departureInput)"
+                        />
+                        @if (errorFor(i, 'departure'); as error) {
+                          <mat-hint class="warning">{{ error }}</mat-hint>
+                        }
+                      </mat-form-field>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="stop-actions">
+            <button mat-button [disabled]="!canAddStop()" (click)="addStop()">+ Add stop</button>
+            <button mat-button [disabled]="draft().stops.length < 2" (click)="removeLastStop()">Remove last stop</button>
+          </div>
+          @for (message of generalErrors(); track message) {
+            <p class="warning">{{ message }}</p>
+          }
+
+          <!-- Stays at the bottom of the screen while a long service scrolls. -->
+          <div class="save-bar">
+            @if (dirty()) {
+              <button mat-stroked-button [disabled]="saving()" (click)="discard()">Discard</button>
+            }
+            <button mat-flat-button [disabled]="saving() || draftErrors().length > 0 || badTimes().size > 0 || !dirty()" (click)="save()">
+              {{ saving() ? 'Saving…' : 'Save' }}
+            </button>
+          </div>
+
+        </section>
+      </div>
+    </mat-tab>
+    <mat-tab label="Auto-generate">
+      <!-- Not lazy: it is created with the Editor, so the shortest interval is worked
+           out while Manual is open and is ready when this tab is. -->
+      <app-generate [serviceCount]="services().length" [unsavedChanges]="dirty()" />
+    </mat-tab>
+  </mat-tab-group>
+}

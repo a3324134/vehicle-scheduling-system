@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: scheduling
+      POSTGRES_PASSWORD: scheduling
+      POSTGRES_DB: scheduling
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduling -d scheduling"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://scheduling:scheduling@db:5432/scheduling
+      # The API tests create and use this separate database.
+      TEST_DATABASE_URL: postgresql+psycopg://scheduling:scheduling@db:5432/scheduling_test
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+  # Only runs when asked for: docker compose run --rm --build frontend-test
+  frontend-test:
+    build:
+      context: ./frontend
+      target: test
+    profiles: ["test"]
+
+volumes:
+  db-data:

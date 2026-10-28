@@ -1,0 +1,259 @@
+<h1>Schedule Viewer</h1>
+
+@if (loadError(); as error) {
+  <p class="warning">{{ error }}</p>
+} @else {
+  <mat-tab-group
+    class="page-tabs"
+    [selectedIndex]="mode() === 'simulation' ? 1 : 0"
+    (selectedIndexChange)="setQuery({ mode: $event === 1 ? 'simulation' : null })"
+    animationDuration="0ms"
+    mat-stretch-tabs="false"
+  >
+    <mat-tab label="Schedule">
+      <ng-template matTabContent>
+        @if (timelines() === null) {
+          <p class="muted">Loading…</p>
+        } @else {
+          <p class="muted summary">{{ count(services().length, 'service') }} · {{ count(conflictCount(), 'conflict') }}</p>
+
+          @if (chart(); as chart) {
+            <app-schedule-chart [chart]="chart" (picked)="reveal($event)" />
+          }
+
+          <!-- Every conflict once: one between two vehicles is one row, not one under each.
+               The filter is for this table only; the vehicles below always show everything. -->
+          @if (conflictCount()) {
+            <section class="card" aria-label="Conflicts">
+              <header class="card-head conflicts-head">
+                <h2>Conflicts</h2>
+                <span class="muted">
+                  {{ filter() === 'all' ? count(conflictCount(), 'conflict') : conflictRows().length + ' of ' + conflictCount() }}
+                </span>
+                <mat-button-toggle-group
+                  class="conflict-filter"
+                  hideSingleSelectionIndicator
+                  aria-label="Show conflicts of type"
+                  [value]="filter()"
+                  (change)="setQuery({ filter: $event.value === 'all' ? null : $event.value })"
+                >
+                  @for (option of filters; track option.value) {
+                    <mat-button-toggle [value]="option.value">{{ option.label }}</mat-button-toggle>
+                  }
+                </mat-button-toggle-group>
+              </header>
+              <div class="scroll">
+                <table class="list conflicts">
+                  <colgroup>
+                    <col class="k-time" />
+                    <col class="k-type" />
+                    <col class="k-details" />
+                    <col />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th scope="col">Time</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Details</th>
+                      <th scope="col">Services</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (group of conflictRows(); track $index) {
+                      <tr
+                        [attr.data-services]="group.services.join(' ')"
+                      >
+                        <!-- The time opens the simulation a few seconds before it. -->
+                        <td class="time">
+                          @let link = simulationLink(group);
+                          <a class="link" routerLink="/viewer" [queryParams]="link" [matTooltip]="'Show in simulation from ' + link.t">{{
+                            conflictTime(group)
+                          }}</a>
+                        </td>
+                        <td>{{ groupType(group) }}</td>
+                        <td>{{ groupDetails(group) }}</td>
+                        <td>
+                          @for (id of group.services; track id; let lastId = $last) {
+                            <button type="button" class="link" [attr.aria-label]="'Show service ' + id" (click)="reveal(id)">
+                              {{ vehicleOf().get(id) }}·{{ id }}</button
+                            >{{ lastId ? '' : ', ' }}
+                          }
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="4" class="muted">No conflicts of this type.</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          }
+
+          <!-- One card per vehicle. Every card has the same fixed column widths,
+               so the columns still line up from one vehicle to the next. -->
+          @for (section of sections(); track section.vehicle) {
+            <section class="card" [attr.aria-label]="section.vehicle">
+              <header class="card-head">
+                <h2>{{ section.vehicle }}</h2>
+                <span class="muted">{{ section.rows.length }} {{ section.rows.length === 1 ? 'service' : 'services' }}</span>
+                @if (section.total) {
+                  <span class="warning card-conflicts">⚠ {{ section.total }} {{ section.total === 1 ? 'conflict' : 'conflicts' }}</span>
+                }
+              </header>
+              @if (section.rows.length) {
+                <table class="list">
+                  <colgroup>
+                    <col class="c-id" />
+                    <col class="c-station" />
+                    <col class="c-time" />
+                    <col class="c-station" />
+                    <col class="c-time" />
+                    <col class="c-stops" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">From</th>
+                      <th scope="col">Departure</th>
+                      <th scope="col">To</th>
+                      <th scope="col">Arrival</th>
+                      <th scope="col" class="num">Stops</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of section.rows; track row.service.id) {
+                      @let service = row.service;
+                      @let open = expanded().has(service.id);
+                      @let last = service.stops[service.stops.length - 1];
+                      <tr class="service" [class.open]="open" [id]="'service-' + service.id" (click)="toggle(service.id)">
+                        <td>
+                          <button
+                            type="button"
+                            class="toggle"
+                            [attr.aria-expanded]="open"
+                            [attr.aria-label]="'Service ' + service.id + ', ' + (open ? 'hide' : 'show') + ' its stops'"
+                          >
+                            <span class="caret" aria-hidden="true">{{ open ? '▾' : '▸' }}</span>{{ service.id }}
+                          </button>
+                          @if (row.groups.length) {
+                            <button
+                              type="button"
+                              class="chip"
+                              [attr.aria-label]="count(row.groups.length, 'conflict') + ', show in the conflicts table'"
+                              (click)="showConflicts(service.id, $event)"
+                            >
+                              ⚠ {{ row.groups.length }}
+                            </button>
+                          }
+                        </td>
+                        <td>{{ service.stops[0].at }}</td>
+                        <td class="time">{{ service.stops[0].departure }}</td>
+                        <td>{{ last.at }}</td>
+                        <td class="time" [class.warning]="isPastMidnight(service)">{{ last.arrival }}</td>
+                        <td class="num">{{ service.stops.length }}</td>
+                      </tr>
+                      @if (open) {
+                        <tr class="details">
+                          <td colspan="6">
+                            <table class="stops" [attr.aria-label]="'Stops of service ' + service.id">
+                              <colgroup>
+                                <col class="s-station" />
+                                <col class="s-via" />
+                                <col class="s-time" />
+                                <col class="s-time" />
+                                <col class="s-stop" />
+                                <col />
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th scope="col">Station</th>
+                                  <th scope="col">Via</th>
+                                  <th scope="col">Arrival</th>
+                                  <th scope="col">Departure</th>
+                                  <th scope="col">Stop</th>
+                                  <th scope="col">Battery</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (stop of stopsOf().get(service.id); track $index; let odd = $odd) {
+                                  <tr [class.alt]="odd">
+                                    <!-- A red cell says why on hover, and lights up with the other cells of its conflict. -->
+                                    <td>
+                                      <span [appConflictMark]="stop.marks.station" [appConflictMarkTip]="tip(stop.marks.station, service)">{{
+                                        stop.at
+                                      }}</span>
+                                    </td>
+                                    <td>
+                                      @for (block of stop.via; track block; let lastBlock = $last) {
+                                        <span
+                                          [appConflictMark]="stop.marks.via.get(block)"
+                                          [appConflictMarkTip]="tip(stop.marks.via.get(block), service)"
+                                          >{{ block }}</span
+                                        >{{ lastBlock ? '' : ', ' }}
+                                      } @empty {
+                                        —
+                                      }
+                                    </td>
+                                    <td class="time">
+                                      <span [appConflictMark]="stop.marks.arrival" [appConflictMarkTip]="tip(stop.marks.arrival, service)">{{
+                                        time(stop.arrival)
+                                      }}</span>
+                                    </td>
+                                    <td class="time">
+                                      <span [appConflictMark]="stop.marks.departure" [appConflictMarkTip]="tip(stop.marks.departure, service)">{{
+                                        time(stop.departure)
+                                      }}</span>
+                                    </td>
+                                    <td>{{ dwell(stop.dwell) }}</td>
+                                    <td>
+                                      @if (stop.battery !== null) {
+                                        <span class="battery" [class.low]="isLow(stop.battery) || stop.marks.battery.length">
+                                          <span
+                                            class="battery-value"
+                                            [appConflictMark]="stop.marks.battery"
+                                            [appConflictMarkTip]="tip(stop.marks.battery, service)"
+                                            >{{ stop.battery }}</span
+                                          >
+                                          <span class="meter" aria-hidden="true"><i [style.width.%]="stop.battery"></i></span>
+                                        </span>
+                                      } @else {
+                                        —
+                                      }
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      }
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="muted empty">No services.</p>
+              }
+            </section>
+          }
+        }
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Simulation">
+      <ng-template matTabContent>
+        @if (timelines(); as timelines) {
+          <app-simulation
+            [timelines]="timelines"
+            [conflicts]="conflicts()"
+            [vehicleOf]="vehicleOf()"
+            [startAt]="startAt()"
+            (timeSettled)="rememberTime($event)"
+          />
+        } @else {
+          <p class="muted">Loading…</p>
+        }
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+}

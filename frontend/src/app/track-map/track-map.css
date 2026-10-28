@@ -1,0 +1,276 @@
+:host {
+  display: block;
+  --track: #57606a;
+  --lit: var(--mat-sys-error);
+}
+
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: inherit;
+}
+
+.group {
+  fill: url(#hatch);
+  stroke: var(--track);
+  stroke-width: 1;
+}
+
+.hatch-line {
+  stroke: #d0e4ec;
+  stroke-width: 2;
+}
+
+.group-label {
+  font-size: 22px;
+  fill: var(--track);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.block {
+  stroke: var(--track);
+  stroke-width: 2;
+}
+
+/* A conflict right now: a thick red line over a pulsing glow (.glow). */
+.block.lit {
+  stroke: var(--lit);
+  stroke-width: 8;
+}
+
+.glow {
+  fill: none;
+  stroke: var(--lit);
+  stroke-width: 24;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  animation: glow 0.8s ease-in-out infinite alternate;
+}
+
+rect.glow {
+  stroke-width: 12;
+}
+
+.arrow-head {
+  fill: var(--track);
+}
+
+.arrow-head.lit {
+  fill: var(--lit);
+}
+
+.block-label {
+  font-size: 22px;
+  fill: #24292f;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 8px;
+}
+
+.block-label.lit {
+  fill: var(--lit);
+  font-weight: 700;
+}
+
+.junction {
+  fill: #fff;
+  stroke: var(--track);
+  stroke-width: 1.5;
+}
+
+.station {
+  fill: #fff;
+  stroke: var(--track);
+  stroke-width: 1.5;
+}
+
+.station.lit {
+  stroke: var(--lit);
+  stroke-width: 5;
+  fill: var(--mat-sys-error-container);
+}
+
+.station-label {
+  font-size: 20px;
+  fill: #24292f;
+  dominant-baseline: middle;
+}
+
+.vehicle .body {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.vehicle.stranded .body {
+  fill: #8c959f;
+  stroke: #57606a;
+  stroke-dasharray: 4 3;
+}
+
+.vehicle .halo {
+  fill: none;
+  stroke: var(--lit);
+  stroke-width: 4;
+}
+
+/* The map is drawn 2000 wide and shown about 1330 px wide (a 1400 px window),
+   so 18 here is 12 px on screen: the smallest text on the page. */
+.vehicle-id {
+  font-size: 18px;
+  font-weight: 700;
+  fill: #fff;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.service-id {
+  font-size: 18px;
+  font-weight: 600;
+  fill: #24292f;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 5px;
+}
+
+.vehicle.warning .service-id {
+  fill: var(--lit);
+}
+
+@keyframes glow {
+  from {
+    opacity: 0.12;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+/* --- Building a path in the Editor (Bonus 2.1) --- */
+
+:host {
+  /* The path so far is blue; where it can go next is orange, so the two
+     stay apart where a loop goes over the same block again. */
+  --path: var(--mat-sys-primary);
+  --next: #c2410c;
+  --next-container: #ffedd5;
+}
+
+.arrow-head.path {
+  fill: var(--path);
+}
+
+.arrow-head.next {
+  fill: var(--next);
+}
+
+.block.selected {
+  stroke: var(--path);
+  stroke-width: 7;
+}
+
+/* Drawn on top of the blocks (and of the path). */
+.next {
+  stroke: var(--next);
+  stroke-width: 4;
+  stroke-dasharray: 10 8;
+  pointer-events: none;
+}
+
+.next.preview {
+  stroke-width: 7;
+  stroke-dasharray: none;
+}
+
+.block.faded,
+.block-label.faded {
+  opacity: 0.35;
+}
+
+.hit {
+  stroke: transparent;
+  stroke-width: 28;
+  pointer-events: stroke;
+}
+
+svg.picking .hit,
+svg.picking .station-group {
+  cursor: not-allowed;
+}
+
+svg.picking .hit.clickable,
+svg.picking .station-group.clickable {
+  cursor: pointer;
+}
+
+.station-group text {
+  pointer-events: none;
+}
+
+.station.selected {
+  stroke: var(--path);
+  stroke-width: 3;
+  fill: var(--mat-sys-primary-container);
+}
+
+/* After .selected: a station visited before can be the next stop again. */
+.station.option {
+  stroke: var(--next);
+  stroke-width: 3;
+  stroke-dasharray: 8 6;
+}
+
+.station.preview {
+  stroke: var(--next);
+  stroke-width: 4;
+  stroke-dasharray: none;
+  fill: var(--next-container);
+}
+
+.station-here {
+  font-size: 18px;
+  font-weight: 700;
+  fill: var(--path);
+  text-anchor: middle;
+}
+
+.station.faded {
+  opacity: 0.45;
+}
+
+.station.removable {
+  stroke-width: 4;
+}
+
+.station.current {
+  stroke-width: 6;
+}
+
+.station-hint {
+  font-size: 18px;
+  fill: var(--path);
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+/* Only the wide hit lines and the stations take clicks; labels drawn on top
+   of a line would otherwise swallow a click on it. */
+.group,
+.group-label,
+.block,
+.block-label,
+.junction {
+  pointer-events: none;
+}

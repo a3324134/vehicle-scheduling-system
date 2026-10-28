@@ -1,0 +1,122 @@
+<div class="controls">
+  <button mat-icon-button aria-label="Back to the first departure" (click)="restart()">⏮</button>
+  <button mat-flat-button class="play" (click)="toggle()">{{ playing() ? '❚❚ Pause' : '▶ Play' }}</button>
+  <mat-button-toggle-group
+    hideSingleSelectionIndicator
+    aria-label="Playback speed"
+    [value]="speed()"
+    (change)="speed.set($event.value)"
+  >
+    @for (option of speeds; track option) {
+      <mat-button-toggle [value]="option">×{{ option }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+  <span class="clock time">{{ format(time()) }}</span>
+</div>
+
+<!-- displayWith: screen readers announce "08:00:00", not "28800". -->
+<mat-slider class="slider" min="0" [max]="end()" step="1" aria-label="Time of day" [displayWith]="format">
+  <input
+    matSliderThumb
+    [value]="time()"
+    (input)="seek(+$any($event.target).value)"
+    (change)="settle()"
+  />
+</mat-slider>
+<div class="ticks muted time">
+  <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
+</div>
+
+<div class="jumps">
+  <button mat-stroked-button [disabled]="!hasPrevious()" (click)="previous()">◀ Previous conflict</button>
+  <button mat-stroked-button [disabled]="!hasNext()" (click)="next()">Next conflict ▶</button>
+  <span class="muted">{{ windows().length ? '' : 'No conflicts in this schedule.' }}</span>
+</div>
+
+<app-track-map [lit]="lit()" [vehicles]="markers()" />
+
+<!-- Fixed column widths, so nothing shifts while it plays. -->
+<div class="panels">
+  <section>
+    <h2>Vehicles</h2>
+    <table class="grid vehicles">
+      <colgroup>
+        <col class="v-id" />
+        <col class="v-location" />
+        <col class="v-service" />
+        <col class="v-battery" />
+        <col />
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">Vehicle</th>
+          <th scope="col">Location</th>
+          <th scope="col">Service</th>
+          <th scope="col">Battery</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.vehicle) {
+          <!-- A red edge on the vehicles with a red ring on the map. -->
+          <tr [class.conflict]="row.conflict">
+            <td>
+              <span class="dot" [style.background]="row.color" aria-hidden="true"></span><strong>{{ row.vehicle }}</strong>
+            </td>
+            <td>{{ row.location }}</td>
+            <td>{{ row.service }}</td>
+            <td>
+              @if (row.battery !== null) {
+                <span class="battery" [class.low]="isLow(row.battery)">
+                  <span class="battery-value">{{ row.battery }}</span>
+                  <span class="meter" aria-hidden="true"><i [style.width.%]="row.battery"></i></span>
+                </span>
+              } @else {
+                —
+              }
+            </td>
+            <td>
+              @if (row.status) {
+                <span class="status" [class.problem]="problemStatuses.has(row.status)">{{ row.status }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Conflicts now</h2>
+    @if (conflictsNow().length) {
+      <table class="grid now">
+        <colgroup>
+          <col class="n-type" />
+          <col />
+          <col class="n-services" />
+          <col class="n-until" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">Details</th>
+            <th scope="col">Services</th>
+            <th scope="col">Until</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (conflict of conflictsNow(); track $index) {
+            <tr>
+              <td class="warning">{{ conflict.type }}</td>
+              <td>{{ conflict.details }}</td>
+              <td>{{ conflict.services }}</td>
+              <td class="time">{{ conflict.until }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="muted">None at {{ format(time()) }}.</p>
+    }
+  </section>
+</div>

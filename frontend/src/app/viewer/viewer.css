@@ -1,0 +1,256 @@
+.summary {
+  margin: 0 0 8px;
+}
+
+/* --- one card per vehicle (.card is in styles.css) --- */
+
+.card-conflicts {
+  margin-left: auto;
+}
+
+/* The filter sits on the right of the conflicts header: short enough for it, same text size as other buttons. */
+.conflicts-head {
+  align-items: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.conflict-filter {
+  margin-left: auto;
+  --mat-button-toggle-height: 32px;
+  --mat-button-toggle-label-text-size: 14px;
+  background: var(--mat-sys-surface);
+}
+
+.empty {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+/* Column widths in percent, the same in every card: the columns spread over
+   the whole card, as wide as the day chart, and line up across vehicles. */
+.list {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* The conflicts table. */
+.k-time {
+  width: 20%;
+}
+
+.k-type {
+  width: 18%;
+}
+
+.k-details {
+  width: 34%;
+}
+
+/* A long list scrolls inside its card, so the vehicles stay close below. */
+.scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.conflicts > thead th {
+  position: sticky;
+  top: 0;
+  background: var(--mat-sys-surface);
+  box-shadow: inset 0 -1px 0 var(--mat-sys-outline-variant);
+}
+
+.conflicts > tbody > tr {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.conflicts > tbody > tr:first-child {
+  border-top: none;
+}
+
+/* In the conflicts table: a time opens the map, a service opens it below. */
+.link {
+  text-decoration: none;
+  font: inherit;
+  color: var(--mat-sys-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.c-id {
+  width: 16%;
+}
+
+.c-station {
+  width: 14%;
+}
+
+.c-time {
+  width: 20%;
+}
+
+.c-stops {
+  width: 16%;
+}
+
+.list > * > tr > th,
+.list > * > tr > td {
+  text-align: left;
+  padding: 8px 16px 8px 0;
+}
+
+.list > * > tr > :first-child {
+  padding-left: 16px;
+}
+
+.list > thead th {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.list > * > tr > .num {
+  text-align: right;
+}
+
+.service {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  cursor: pointer;
+}
+
+.service > td {
+  white-space: nowrap;
+}
+
+.service:hover {
+  background: var(--mat-sys-surface-container-low);
+}
+
+.service.open {
+  background: var(--mat-sys-secondary-container);
+}
+
+.toggle {
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.caret {
+  display: inline-block;
+  width: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Next to the ID: "▸ 135 ⚠ 2". Shows the service's rows in the conflicts table. */
+.chip {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+/* --- an open service: its conflicts, then its stops --- */
+
+/* A line down the left joins the open row to what it opened. */
+.service.open > td:first-child,
+.details > td {
+  box-shadow: inset 3px 0 0 var(--mat-sys-primary);
+}
+
+.list > tbody > .details > td {
+  padding: 12px 16px 16px;
+  cursor: default;
+}
+
+/* The stops: as wide as the card, same text size as the rows above. */
+.stops {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.s-station,
+.s-via,
+.s-time {
+  width: 16%;
+}
+
+.s-stop {
+  width: 12%;
+}
+
+.stops th,
+.stops td {
+  text-align: left;
+  padding: 6px 12px;
+}
+
+.stops thead th {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.stops tr.alt > td {
+  background: var(--mat-sys-surface-container-low);
+}
+
+/* "97 ██████▊": the number, then a bar out of 100. */
+.battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-value {
+  width: 28px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  display: inline-block;
+  width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.meter > i {
+  display: block;
+  height: 100%;
+  background: var(--mat-sys-primary);
+}
+
+.battery.low {
+  color: var(--mat-sys-error);
+}
+
+.battery.low .meter > i {
+  background: var(--mat-sys-error);
+}

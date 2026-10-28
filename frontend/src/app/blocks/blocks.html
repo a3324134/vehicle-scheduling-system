@@ -1,0 +1,67 @@
+<h1>Block Configuration</h1>
+<p class="muted intro">
+  Time for a vehicle to pass through each block. Changes apply to every service; any timing problems they cause are
+  flagged in the Viewer.
+</p>
+
+@if (loadError(); as error) {
+  <p class="warning">{{ error }}</p>
+} @else {
+  <!-- Same card as the Viewer's tables, same compact fields and save bar as the Editor. -->
+  <div class="page">
+    <section class="card" aria-label="Blocks">
+      <header class="card-head">
+        <h2>Blocks</h2>
+        <span class="muted">{{ rows().length }} blocks</span>
+      </header>
+      <table class="blocks">
+        <colgroup>
+          <col class="b-id" />
+          <col class="b-used" />
+          <col class="b-seconds" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Block</th>
+            <th scope="col">Used on</th>
+            <th scope="col">Traversal time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr [class.changed]="row.value !== row.saved">
+              <td class="id">{{ row.id }}</td>
+              <td class="muted">{{ row.usedOn }}</td>
+              <td>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="seconds">
+                  <input
+                    matInput
+                    type="number"
+                    min="1"
+                    step="1"
+                    [attr.aria-label]="row.id + ' traversal seconds'"
+                    [value]="row.value ?? ''"
+                    (input)="setValue(row.id, $any($event.target).value)"
+                  />
+                  <span matTextSuffix>s</span>
+                  @if (!isValid(row.value)) {
+                    <mat-hint class="warning">Whole seconds, at least 1</mat-hint>
+                  }
+                </mat-form-field>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <div class="save-bar">
+      @if (dirty()) {
+        <button mat-stroked-button [disabled]="saving()" (click)="discard()">Discard</button>
+      }
+      <button mat-flat-button [disabled]="!dirty() || !valid() || saving()" (click)="save()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </div>
+}

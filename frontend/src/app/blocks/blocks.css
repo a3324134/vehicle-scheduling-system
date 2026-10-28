@@ -1,0 +1,69 @@
+.intro {
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+/* Three short columns: no wider than they need, the save bar as wide as the card. */
+.page {
+  max-width: 640px;
+}
+
+.card {
+  margin-bottom: 0;
+}
+
+/* The table look of the Viewer's cards. */
+.blocks {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.b-id {
+  width: 18%;
+}
+
+.b-used {
+  width: 52%;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 4px 16px 4px 0;
+}
+
+th {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+tr > :first-child {
+  padding-left: 16px;
+}
+
+tbody tr {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.id {
+  font-weight: 600;
+}
+
+/* Not saved yet. */
+tr.changed .id::after {
+  content: ' •';
+  color: var(--mat-sys-primary);
+}
+
+/* As compact as the Editor's fields. */
+.seconds {
+  width: 100%;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-container-text-size: 14px;
+}

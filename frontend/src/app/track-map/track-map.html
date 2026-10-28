@@ -1,0 +1,177 @@
+<svg
+  [attr.viewBox]="viewBox"
+  [attr.role]="picking() ? 'group' : 'img'"
+  [attr.aria-label]="picking() ? 'Track map: click blocks and stations to build the path' : 'Track map with vehicle positions'"
+  [class.picking]="picking()"
+>
+  <defs>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="10" class="hatch-line" />
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrow-head" />
+    </marker>
+    <marker id="arrow-lit" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrow-head lit" />
+    </marker>
+    <marker id="arrow-next" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrow-head next" />
+    </marker>
+    <marker id="arrow-path" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrow-head path" />
+    </marker>
+  </defs>
+
+  @for (group of groups; track group.name) {
+    <rect class="group" [attr.x]="group.x" [attr.y]="group.y" [attr.width]="group.width" [attr.height]="group.height" />
+    <text class="group-label" [attr.x]="group.x + group.width / 2" [attr.y]="group.y + group.height / 2">
+      {{ group.name }}
+    </text>
+  }
+
+  <!-- A pulsing red glow under each block in a conflict right now. -->
+  @for (block of blocks; track block.id) {
+    @if (lit().has(block.id)) {
+      <line class="glow" [attr.x1]="block.from.x" [attr.y1]="block.from.y" [attr.x2]="block.to.x" [attr.y2]="block.to.y" />
+    }
+  }
+
+  @for (block of blocks; track block.id) {
+    <line
+      class="block"
+      [class.lit]="lit().has(block.id)"
+      [class.selected]="isSelected(block.id)"
+      [class.faded]="isFaded(block.id)"
+      [attr.x1]="block.from.x"
+      [attr.y1]="block.from.y"
+      [attr.x2]="block.to.x"
+      [attr.y2]="block.to.y"
+      [attr.marker-end]="arrow(block.id)"
+      [attr.marker-start]="block.backwardToward ? arrow(block.id) : null"
+    />
+  }
+
+  <!-- Where the next click can go, on top of the path (a loop reuses its blocks). -->
+  @for (next of nextLines(); track next.line.id) {
+    <line
+      class="next"
+      [class.preview]="isPreview(next.line.id)"
+      [attr.x1]="next.line.from.x"
+      [attr.y1]="next.line.from.y"
+      [attr.x2]="next.line.to.x"
+      [attr.y2]="next.line.to.y"
+      [attr.marker-end]="next.backward ? null : 'url(#arrow-next)'"
+      [attr.marker-start]="next.backward ? 'url(#arrow-next)' : null"
+    />
+  }
+
+  @for (block of blocks; track block.id) {
+    <text
+      class="block-label"
+      [class.lit]="lit().has(block.id)"
+      [class.faded]="isFaded(block.id)"
+      [attr.x]="block.label.x"
+      [attr.y]="block.label.y"
+    >
+      {{ block.id }}
+    </text>
+  }
+
+  @if (picking()) {
+    <!-- Wide invisible lines, so the thin blocks are easy to hit. -->
+    @for (block of hitOrder(); track block.id) {
+      <line
+        class="hit"
+        [class.clickable]="isOption(block.id)"
+        [attr.x1]="block.from.x"
+        [attr.y1]="block.from.y"
+        [attr.x2]="block.to.x"
+        [attr.y2]="block.to.y"
+        [attr.data-id]="block.id"
+        (click)="pick(block.id)"
+        (mouseenter)="hover(block.id)"
+        (mouseleave)="hover(null)"
+      >
+        @if (hint(block.id); as text) {
+          <title>{{ block.id }}: {{ text }}</title>
+        }
+      </line>
+    }
+  }
+
+  @for (point of junctions; track $index) {
+    <circle class="junction" [attr.cx]="point.x" [attr.cy]="point.y" r="5" />
+  }
+
+  @for (station of stations; track station.id) {
+    <g
+      class="station-group"
+      [class.clickable]="isOption(station.id) || station.id === removable()"
+      [attr.data-id]="station.id"
+      (click)="pick(station.id)"
+      (mouseenter)="hover(station.id)"
+      (mouseleave)="hover(null)"
+    >
+      @if (lit().has(station.id)) {
+        <rect
+          class="glow"
+          [attr.x]="station.center.x - size.width / 2 - 8"
+          [attr.y]="station.center.y - size.height / 2 - 8"
+          [attr.width]="size.width + 16"
+          [attr.height]="size.height + 16"
+          rx="14"
+        />
+      }
+      <rect
+        class="station"
+        [class.lit]="lit().has(station.id)"
+        [class.selected]="isSelected(station.id)"
+        [class.option]="isOption(station.id)"
+        [class.preview]="isPreview(station.id)"
+        [class.faded]="isFaded(station.id)"
+        [class.current]="picking() && station.id === current()"
+        [class.removable]="picking() && station.id === removable()"
+        [attr.x]="station.center.x - size.width / 2"
+        [attr.y]="station.center.y - size.height / 2"
+        [attr.width]="size.width"
+        [attr.height]="size.height"
+        rx="8"
+      />
+      <text class="station-label" [attr.x]="station.center.x - size.width / 2 + 12" [attr.y]="station.center.y">
+        {{ station.id }}
+      </text>
+      @if (picking() && station.id === current()) {
+        <text class="station-here" [attr.x]="station.center.x" [attr.y]="station.center.y - size.height / 2 - 10">
+          ▼ you are here
+        </text>
+      }
+      @if (picking() && station.id === removable()) {
+        <text class="station-hint" [attr.x]="station.center.x + size.width / 2 - 12" [attr.y]="station.center.y">
+          ✕ remove
+        </text>
+      }
+      @if (hint(station.id); as text) {
+        <title>{{ station.id }}: {{ text }}</title>
+      }
+    </g>
+  }
+
+  @for (marker of vehicles(); track marker.key) {
+    <g
+      class="vehicle"
+      [class.stranded]="marker.stranded"
+      [class.warning]="marker.warning"
+      [attr.transform]="'translate(' + marker.position.x + ' ' + marker.position.y + ')'"
+    >
+      @if (marker.warning) {
+        <circle class="halo" r="25" />
+      }
+      <circle class="body" r="18" [attr.fill]="marker.stranded ? null : color(marker.vehicle)" />
+      <text class="vehicle-id">{{ marker.vehicle }}</text>
+      @if (marker.service !== null) {
+        <text class="service-id" y="-26">{{ marker.service }}</text>
+      }
+      <title>{{ marker.vehicle }}{{ marker.service !== null ? ' · service ' + marker.service : '' }}</title>
+    </g>
+  }
+</svg>

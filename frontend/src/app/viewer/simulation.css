@@ -1,0 +1,173 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.play {
+  min-width: 110px;
+}
+
+.clock {
+  font-size: 22px;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.slider {
+  width: 100%;
+  margin: 8px 0 0;
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin: -8px 8px 8px;
+}
+
+.jumps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+app-track-map {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panels h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.grid td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--mat-sys-surface-variant);
+}
+
+.v-id {
+  width: 16%;
+}
+
+.v-location {
+  width: 28%;
+}
+
+.v-service {
+  width: 16%;
+}
+
+.v-battery {
+  width: 22%;
+}
+
+.n-type {
+  width: 24%;
+}
+
+.n-services {
+  width: 26%;
+}
+
+.n-until {
+  width: 18%;
+}
+
+.vehicles tr.conflict > td:first-child {
+  box-shadow: inset 3px 0 0 var(--mat-sys-error);
+}
+
+/* The vehicle's colour on the map. */
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-value {
+  width: 28px;
+  text-align: right;
+}
+
+.meter {
+  display: inline-block;
+  width: 60px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.meter > i {
+  display: block;
+  height: 100%;
+  background: var(--mat-sys-primary);
+}
+
+.battery.low {
+  color: var(--mat-sys-error);
+}
+
+.battery.low .meter > i {
+  background: var(--mat-sys-error);
+}
+
+.status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.status.problem {
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}

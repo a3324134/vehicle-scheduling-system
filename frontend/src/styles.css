@@ -1,0 +1,172 @@
+html {
+  --app-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* The prebuilt theme names Roboto with no fallback; use the system font instead of loading it. */
+  --mat-sys-body-large-font: var(--app-font);
+  --mat-sys-body-medium-font: var(--app-font);
+  --mat-sys-body-small-font: var(--app-font);
+  --mat-sys-display-large-font: var(--app-font);
+  --mat-sys-display-medium-font: var(--app-font);
+  --mat-sys-display-small-font: var(--app-font);
+  --mat-sys-headline-large-font: var(--app-font);
+  --mat-sys-headline-medium-font: var(--app-font);
+  --mat-sys-headline-small-font: var(--app-font);
+  --mat-sys-label-large-font: var(--app-font);
+  --mat-sys-label-medium-font: var(--app-font);
+  --mat-sys-label-small-font: var(--app-font);
+  --mat-sys-title-large-font: var(--app-font);
+  --mat-sys-title-medium-font: var(--app-font);
+  --mat-sys-title-small-font: var(--app-font);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--app-font);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+/* Bold, so it reads above the bold page tabs just below it. */
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 8px 0 16px;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 16px 0 8px;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}
+
+.conflict-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conflict-list li {
+  color: var(--mat-sys-error);
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.conflict-list li::before {
+  content: '⚠ ';
+}
+
+/* Page tabs (Editor: Manual / Auto-generate; Viewer: Schedule / Simulation).
+   They are the main choice on the page, so they stand out: taller, larger
+   text, and a background on the chosen tab. The tab header is inside
+   mat-tab-group's own template, so these rules have to be global. */
+.page-tabs {
+  --mat-tab-container-height: 56px;
+  --mat-tab-label-text-size: 16px;
+  --mat-tab-label-text-weight: 600;
+  --mat-tab-active-indicator-height: 3px;
+  --mat-tab-divider-color: var(--mat-sys-outline-variant);
+  --mat-tab-divider-height: 1px;
+}
+
+.page-tabs .mat-mdc-tab {
+  border-radius: 8px 8px 0 0;
+  padding: 0 24px;
+}
+
+.page-tabs .mat-mdc-tab.mdc-tab--active {
+  background: var(--mat-sys-primary-container);
+}
+
+.page-tabs .mat-mdc-tab-body-wrapper {
+  padding-top: 16px;
+}
+
+/* The page scrolls, not the tab: Material makes the tab body a scroll box of
+   its own, which would also keep sticky parts (the Editor's save bar) from
+   sticking to the screen. */
+.page-tabs.mat-mdc-tab-group .mat-mdc-tab-body-wrapper,
+.page-tabs.mat-mdc-tab-group .mat-mdc-tab-body.mat-mdc-tab-body-active,
+.page-tabs.mat-mdc-tab-group .mat-mdc-tab-body-active .mat-mdc-tab-body-content {
+  overflow: visible;
+}
+
+/* A table in a box with a grey header line: the Viewer's vehicles and conflicts, the blocks. */
+.card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: var(--mat-sys-surface);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--mat-sys-surface-container);
+  font-size: 14px;
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Save bar of the Editor and Blocks: stuck to the bottom of the screen until the form ends. */
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 0;
+  background: var(--mat-sys-surface);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+/* Tooltips can list several conflicts, one per line, each wide enough to fit on it. */
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  max-width: 360px;
+  white-space: pre-line;
+  text-align: left;
+}
+
+/* A red cell of a timetable (shared/conflict-mark.ts). */
+.marked {
+  color: var(--mat-sys-error);
+}
+
+/* Lit with every red cell of the same conflict while one of them is pointed at.
+   The shadow widens the tint without moving the text. */
+.marked.lit {
+  background: var(--mat-sys-error-container);
+  box-shadow: 0 0 0 3px var(--mat-sys-error-container);
+  border-radius: 2px;
+}
+
+.marked:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

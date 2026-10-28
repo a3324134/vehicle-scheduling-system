@@ -1,0 +1,244 @@
+/* About 2 : 3 between the list and the form; the form's table fills its side. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 2fr) minmax(0, 3fr);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+/* The main action of the list: filled and as wide as it. */
+.new {
+  flex-shrink: 0;
+  width: 100%;
+  height: 44px;
+  margin-bottom: 8px;
+}
+
+/* Stays in view while the list scrolls. */
+.bulk {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--mat-sys-surface);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.group-head {
+  margin: 12px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* "105  10:00:00–11:02:30  35 stops  ⚠ 1" on one line. */
+.item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--mat-sys-surface-container);
+}
+
+.item.selected {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+}
+
+.item-id {
+  width: 32px;
+}
+
+.stops-count {
+  font-size: 12px;
+}
+
+.badge {
+  margin-left: auto;
+  color: var(--mat-sys-error);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.form-head .badge {
+  margin-left: 0;
+}
+
+/* As compact as the stops below. */
+.vehicle-field {
+  width: 34%;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-container-text-size: 14px;
+  --mat-select-trigger-text-size: 14px;
+}
+
+/* Compact fields, so a long service fits on fewer screens. */
+.stops {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-container-text-size: 14px;
+  --mat-select-trigger-text-size: 14px;
+}
+
+.stops th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0 16px 4px 0;
+}
+
+.stops td {
+  padding: 4px 16px 4px 0;
+  vertical-align: top;
+}
+
+/* A stop in a conflict: tinted row with a red edge and a red number; it says why on hover. */
+.stops tr.conflict > td {
+  background: var(--mat-sys-error-container);
+}
+
+.stops tr.conflict > .index {
+  color: var(--mat-sys-error);
+}
+
+.stops tr.conflict > td:first-child {
+  box-shadow: inset 4px 0 0 var(--mat-sys-error);
+  padding-left: 12px;
+}
+
+.stops tr.conflict + tr.conflict > td {
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-error) 25%, transparent);
+}
+
+/* Room inside the tint on both sides; the header lines up with it. */
+.index,
+.stops th:first-child {
+  padding-left: 12px !important;
+}
+
+.stops td:last-child {
+  padding-right: 12px;
+}
+
+/* Text cells line up with the middle of a 40px field. */
+.index {
+  padding-top: 14px !important;
+  width: 24px;
+}
+
+.arrival {
+  padding-top: 14px !important;
+  min-width: 72px;
+}
+
+.s-index {
+  width: 9%;
+}
+
+.s-station,
+.s-departure {
+  width: 34%;
+}
+
+.station,
+.departure {
+  width: 100%;
+}
+
+.stop-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* A filled red button once something is ticked; greyed like any disabled button otherwise. */
+.delete {
+  --mat-button-filled-container-color: var(--mat-sys-error);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-error);
+}
+
+.map app-track-map {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.map-help {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  margin: 6px 0 16px;
+}
+
+/* Matches the track map's path and next-step colours. */
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 24px;
+  height: 0;
+  border-top: 4px solid var(--mat-sys-primary);
+}
+
+.swatch.next {
+  border-top: 3px dashed #c2410c;
+}
+
+/* "Conflicts are from the saved version…" under the heading. */
+.note {
+  font-size: 14px;
+  margin: -8px 0 12px;
+}
